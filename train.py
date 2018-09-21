@@ -171,4 +171,4 @@ for ep in range(N_GEN_EPOCHS):
     plt.show()
     plt.pause(0.5)
 
-torch.save(encoder_net.state_dict(), GMMN_SAVE_PATH)
+torch.save(gmm_net.state_dict(), GMMN_SAVE_PATH)
