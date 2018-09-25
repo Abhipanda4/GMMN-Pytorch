@@ -5,28 +5,16 @@ from torchvision import datasets, transforms
 
 import os
 import matplotlib.pyplot as plt
+
 from autoencoder import Autoencoder
 from gmmn import *
+from constants import *
 
-is_visualize = False
-
-root = "./data"
 if not os.path.exists(root):
     os.mkdir(root)
 
-model = "./model"
 if not os.path.exists(model):
     os.mkdir(model)
-
-ENCODER_SAVE_PATH = model + "/autoencoder.pth"
-GMMN_SAVE_PATH = model + "/gmmn.pth"
-
-BATCH_SIZE = 64
-N_INP = 784
-NOISE_SIZE = 64
-ENCODED_SIZE = 128
-N_ENCODER_EPOCHS = 20
-N_GEN_EPOCHS = 50
 
 # dataloader
 trans = transforms.Compose([transforms.ToTensor()])
@@ -45,8 +33,6 @@ test_loader = torch.utils.data.DataLoader(
 
 
 # parameters for visualization
-N_COLS = 8
-N_ROWS = 4
 view_data = [test_set[i][0] for i in range(N_ROWS * N_COLS)]
 
 # train the autoencoder first
@@ -57,7 +43,8 @@ if os.path.exists(ENCODER_SAVE_PATH):
     encoder_net.load_state_dict(torch.load(ENCODER_SAVE_PATH))
     print("Loaded saved autoencoder model")
 else:
-    for _ in range(N_ENCODER_EPOCHS):
+    for ep in range(N_ENCODER_EPOCHS):
+        avg_loss = 0
         for idx, (x, _) in enumerate(train_loader):
             x = x.view(x.size()[0], -1)
             _, decoded = encoder_net(Variable(x))
@@ -65,39 +52,14 @@ else:
             encoder_optim.zero_grad()
             loss.backward()
             encoder_optim.step()
+            avg_loss += loss.item()
+        avg_loss /= (idx + 1)
 
-        if not is_visualize:
-            continue
-
-        # for interactive mode
-        plt.ion()
-        plt.gray()
-
-        for i in range(N_ROWS * N_COLS):
-            # original image
-            r = i // N_COLS
-            c = i % N_COLS + 1
-            ax = plt.subplot(2 * N_ROWS, N_COLS, 2 * r * N_COLS + c)
-            plt.imshow(view_data[i].squeeze())
-            plt.gray()
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-
-            # reconstructed image
-            ax = plt.subplot(2 * N_ROWS, N_COLS, 2 * r * N_COLS + c + N_COLS)
-            x = Variable(view_data[i])
-            _, y = encoder_net(x.view(1, -1))
-            plt.imshow(y.detach().squeeze().numpy().reshape(28, 28))
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-        plt.show()
-        plt.pause(0.5)
+        print("Autoencoder Training: Epoch - [%2d] complete, average loss - [%.4f]" %(ep, avg_loss))
 
     torch.save(encoder_net.state_dict(), ENCODER_SAVE_PATH)
 
-
 print("Autoencoder has been successfully trained")
-plt.ioff()
 
 # define the GMMN
 gmm_net = GMMN(NOISE_SIZE, ENCODED_SIZE)
@@ -105,14 +67,14 @@ if os.path.exists(GMMN_SAVE_PATH):
     gmm_net.load_state_dict(torch.load(GMMN_SAVE_PATH))
     print("Loaded previously saved GMM Network")
 
-gmmn_optimizer = optim.Adam(gmm_net.parameters())
+gmmn_optimizer = optim.Adam(gmm_net.parameters(), lr=0.01)
 
 def get_scale_matrix(M, N):
     s1 = torch.ones((N, 1)) * 1.0 / N
     s2 = torch.ones((M, 1)) * -1.0 / M
     return torch.cat((s1, s2), 0)
 
-def train_one_step(x, samples, sigma=[2, 5, 10, 20]):
+def train_one_step(x, samples, sigma=[1]):
     x = Variable(x)
     gen_samples = gmm_net(Variable(samples))
     X = torch.cat((gen_samples, x), 0)
@@ -152,7 +114,7 @@ for ep in range(N_GEN_EPOCHS):
         avg_loss += loss.item()
 
     avg_loss /= (idx + 1)
-    print("Epoch [%3d] complete - avg loss was [%.4f]" %(ep, avg_loss))
+    print("GMMN Training: Epoch - [%3d] complete, average loss - [%.4f]" %(ep, avg_loss))
 
     plt.ion()
     plt.gray()
