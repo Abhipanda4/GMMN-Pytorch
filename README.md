@@ -1,7 +1,7 @@
 # Generative Moment Matching Networks(GMMNs)
 ---------------------------------------------
 
-This repo contains an implementation of Generative Moment Matching Networks(see [https://arxiv.org/pdf/1502.02761.pdf](paper)) in pytorch(0.4)  
+This repo contains an implementation of Generative Moment Matching Networks(see <https://arxiv.org/pdf/1502.02761.pdf>) in pytorch(0.4)  
 
 ## Usage:
 Clone the repo and change into the code directory. Since the pretrained weights are available, the outputs can be visualized using the command:  
