@@ -100,7 +100,7 @@ for ep in range(N_GEN_EPOCHS):
         x = x.view(x.size()[0], -1)
         with torch.no_grad():
             x = Variable(x).to(device)
-            encoded_x, _ = encoder_net(x)
+            encoded_x = encoder_net.encode(x)
 
         # uniform random noise between [-1, 1]
         random_noise = torch.rand((BATCH_SIZE, NOISE_SIZE)) * 2 - 1

@@ -12,11 +12,14 @@ class Autoencoder(nn.Module):
         self.decoder_fc2 = nn.Linear(1024, n_inp)
 
     def forward(self, x):
-        e = F.sigmoid(self.encoder_fc1(x))
-        e = F.sigmoid(self.encoder_fc2(e))
-
+        e = self.encode(x)
         d = self.decode(e)
         return e, d
+
+    def encode(self, x):
+        e = F.sigmoid(self.encoder_fc1(x))
+        e = F.sigmoid(self.encoder_fc2(e))
+        return e
 
     def decode(self, x):
         d = F.sigmoid(self.decoder_fc1(x))
