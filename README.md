@@ -14,7 +14,7 @@ In case the netowrks are to be trained from scratch, delete the models directory
 
 ## Inferences:
 Some conclusions drawn from this implementation are listed below:
-* The network is very senesitive to network architecture and learning rate, Slight alterations in hyperparameters can affect results drastically.
+* The network is very sensitive to network architecture and learning rate, Slight alterations in hyperparameters can affect results drastically.
 * Increasing noise dimensionality(input to GMMN) adversely affects the quality of image generated.
 
 ## Note:
